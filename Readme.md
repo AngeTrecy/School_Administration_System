@@ -86,10 +86,6 @@ javafx.height=800
 mvn clean install
 ```
 
-**Avec Gradle :**
-```bash
-gradle build
-```
 
 ## Structure du Projet
 
@@ -106,7 +102,7 @@ gestion-scolaire/
 │   │   │           ├── service/        # Logique métier
 │   │   │           ├── controller/     # Contrôleurs JavaFX
 │   │   │           ├── view/           # Classes utilitaires pour les vues
-│   │   │           └── Main.java       # Point d'entrée
+│   │   │           └── Main.java        # Point d'entrée
 │   │   │
 │   │   └── resources/
 │   │       ├── fxml/                   # Fichiers FXML pour les interfaces
@@ -168,10 +164,6 @@ gestion-scolaire/
 mvn javafx:run
 ```
 
-### Avec Gradle
-```bash
-gradle run
-```
 
 ### Depuis l'IDE
 Exécuter la classe `Main.java`
@@ -241,11 +233,7 @@ mvn test
 
 ## Auteur
 
-Votre Nom - [votre@email.com]
-
-## Licence
-
-Ce projet est sous licence MIT - voir le fichier LICENSE pour plus de détails.
+Demanou Ange Trecy - angedemanou0@gmail.com
 
 ## Support
 
