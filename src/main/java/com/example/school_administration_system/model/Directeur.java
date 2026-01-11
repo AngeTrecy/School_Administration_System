@@ -10,11 +10,11 @@ package com.example.school_administration_system.model;
             super(nom, prenom, email, motDePasse, telephone);
         }
 
-        public void autoriserAdministrateur(Administrateur admin) {
+        public void autoriserAdministrateur(Administration admin) {
             System.out.println("Administrateur " + admin.getNomComplet() + " autorisé.");
         }
 
-        public void revoquerAcces(Administrateur admin) {
+        public void revoquerAcces(Administration admin) {
             System.out.println("Accès de " + admin.getNomComplet() + " révoqué.");
         }
 
