@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.school_administration_system.controller.StudentDashboardController"
+            style="-fx-background-color: #f5f5f5;">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox prefWidth="250" style="-fx-background-color: white;" spacing="10">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <!-- Logo et titre -->
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <StackPane>
+                    <Circle radius="20" fill="#1dd1a1"/>
+                    <Label text="📚" style="-fx-text-fill: white; -fx-font-size: 16px;"/>
+                </StackPane>
+                <Label text="École Primaire Voltaire"
+                       style="-fx-font-weight: bold; -fx-font-size: 14px;"/>
+            </HBox>
+
+            <!-- Menu -->
+            <VBox spacing="5" VBox.vgrow="ALWAYS">
+                <padding>
+                    <Insets top="30"/>
+                </padding>
+
+                <!-- Tableau de bord -->
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      style="-fx-background-color: #1dd1a1; -fx-background-radius: 10; -fx-cursor: hand;"
+                      onMouseClicked="#handleTableauDeBord">
+                    <padding>
+                        <Insets top="12" right="15" bottom="12" left="15"/>
+                    </padding>
+                    <Label text="📊" style="-fx-font-size: 16px;"/>
+                    <Label text="Tableau de bord"
+                           style="-fx-text-fill: white; -fx-font-size: 13px;"/>
+                </HBox>
+
+                <!-- Ma classe -->
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      style="-fx-background-radius: 10; -fx-cursor: hand;"
+                      onMouseClicked="#handleMaClasse"
+                      onMouseEntered="#handleMenuHover"
+                      onMouseExited="#handleMenuExit">
+                    <padding>
+                        <Insets top="12" right="15" bottom="12" left="15"/>
+                    </padding>
+                    <Label text="📖" style="-fx-font-size: 16px;"/>
+                    <Label text="Ma classe"
+                           style="-fx-text-fill: #2d3436; -fx-font-size: 13px;"/>
+                </HBox>
+
+                <!-- Enseignants -->
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      style="-fx-background-radius: 10; -fx-cursor: hand;"
+                      onMouseClicked="#handleEnseignants"
+                      onMouseEntered="#handleMenuHover"
+                      onMouseExited="#handleMenuExit">
+                    <padding>
+                        <Insets top="12" right="15" bottom="12" left="15"/>
+                    </padding>
+                    <Label text="👥" style="-fx-font-size: 16px;"/>
+                    <Label text="Enseignants"
+                           style="-fx-text-fill: #2d3436; -fx-font-size: 13px;"/>
+                </HBox>
+
+                <!-- Emploi du temps -->
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      style="-fx-background-radius: 10; -fx-cursor: hand;"
+                      onMouseClicked="#handleEmploiDuTemps"
+                      onMouseEntered="#handleMenuHover"
+                      onMouseExited="#handleMenuExit">
+                    <padding>
+                        <Insets top="12" right="15" bottom="12" left="15"/>
+                    </padding>
+                    <Label text="📅" style="-fx-font-size: 16px;"/>
+                    <Label text="Emploi du temps"
+                           style="-fx-text-fill: #2d3436; -fx-font-size: 13px;"/>
+                </HBox>
+            </VBox>
+
+            <!-- Profil utilisateur en bas -->
+            <HBox alignment="CENTER_LEFT" spacing="10"
+                  style="-fx-background-color: #f8f9fa; -fx-background-radius: 10;">
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+                <StackPane>
+                    <Circle radius="20" fill="#1dd1a1"/>
+                    <Label text="LB" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+                </StackPane>
+                <VBox spacing="2">
+                    <Label text="Trecy kenfack"
+                           style="-fx-font-weight: bold; -fx-font-size: 12px;"/>
+                    <Label text="eleve@ecole.fr"
+                           style="-fx-text-fill: #636e72; -fx-font-size: 10px;"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </left>
+
+    <!-- Contenu principal -->
+    <center>
+        <VBox fx:id="mainContent" spacing="25">
+            <padding>
+                <Insets top="40" right="40" bottom="40" left="40"/>
+            </padding>
+
+            <!-- Barre supérieure -->
+            <HBox alignment="CENTER_RIGHT" spacing="20" 
+                  style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 0);">
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <!-- Notifications -->
+                <StackPane style="-fx-cursor: hand;" onMouseClicked="#handleNotifications">
+                    <Circle radius="22" fill="#f0f1f2"/>
+                    <VBox alignment="CENTER">
+                        <Label text="🔔" style="-fx-font-size: 16px;"/>
+                    </VBox>
+                    <Circle radius="8" fill="#ff6b6b" StackPane.alignment="TOP_RIGHT"/>
+                    <Label text="3" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 10px;" StackPane.alignment="TOP_RIGHT"/>
+                </StackPane>
+                
+                <!-- Séparateur -->
+                <Label text="|" style="-fx-text-fill: #dfe6e9; -fx-font-size: 20px;"/>
+                
+                <!-- Profil utilisateur -->
+                <HBox alignment="CENTER" spacing="12" style="-fx-cursor: hand;" onMouseClicked="#handleProfileMenu">
+                    <StackPane>
+                        <Circle radius="22" fill="#1dd1a1"/>
+                        <Label text="LB" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+                    </StackPane>
+                    <VBox spacing="1" prefWidth="100">
+                        <Label fx:id="userNameLabel" text="Lucas Bernard"
+                               style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #2d3436;"/>
+                        <Label text="Étudiant" 
+                               style="-fx-text-fill: #b2bec3; -fx-font-size: 10px;"/>
+                    </VBox>
+                    <Label text="▼" style="-fx-font-size: 11px; -fx-text-fill: #636e72; -fx-cursor: hand;"/>
+                </HBox>
+            </HBox>
+
+            <!-- Message de bienvenue -->
+            <VBox spacing="5">
+                <Label fx:id="welcomeLabel" text="Bonjour, Lucas !"
+                       style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
+                <Label text="Bienvenue sur votre espace étudiant"
+                       style="-fx-text-fill: #636e72; -fx-font-size: 14px;"/>
+                <Label fx:id="dateLabel" text="Vendredi 23 Janvier 2026"
+                       style="-fx-text-fill: #b2bec3; -fx-font-size: 13px;"/>
+            </VBox>
+
+            <!-- Cartes d'information -->
+            <HBox fx:id="infoCardsContainer" spacing="20"/>
+
+            <!-- Section emploi du temps et enseignants -->
+            <HBox spacing="20">
+                <!-- Emploi du temps -->
+                <VBox prefWidth="550" spacing="15"
+                      style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 0);">
+                    <padding>
+                        <Insets top="25" right="25" bottom="25" left="25"/>
+                    </padding>
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="📅" style="-fx-font-size: 18px;"/>
+                        <Label text="Cours du jour"
+                               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    </HBox>
+                    <VBox fx:id="scheduleContainer" spacing="12"/>
+                </VBox>
+
+                <!-- Enseignants -->
+                <VBox prefWidth="400" spacing="15"
+                      style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 0);">
+                    <padding>
+                        <Insets top="25" right="25" bottom="25" left="25"/>
+                    </padding>
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="👥" style="-fx-font-size: 18px;"/>
+                        <Label text="Mes enseignants"
+                               style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    </HBox>
+                    <VBox fx:id="teachersContainer" spacing="12"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

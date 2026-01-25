@@ -20,6 +20,8 @@ public class DirecteurService {
             this.etudiantDAO = new EtudiantDAO();
         }
 
+
+
         // Gestion des AdministrationServices
         public boolean autoriserAdministrationService(Administration admin) {
             try {
@@ -33,7 +35,7 @@ public class DirecteurService {
 
         public boolean revoquerAcces(int adminId) {
             try {
-                AdministrationDAO.delete(adminId);
+                administrationDAO.delete(adminId);
                 return true;
             } catch (Exception e) {
                 System.err.println("Erreur révocation: " + e.getMessage());
@@ -41,11 +43,12 @@ public class DirecteurService {
             }
         }
 
-        public List<AdministrationService> getTousLesAdministrationServices() {
-            return AdministrationDAO.findAll();
-        }
+    public List<Administration> getTousLesAdministrations() {
+        return administrationDAO.findAll(); // ✅
+    }
 
-        // Validation des emplois du temps
+
+    // Validation des emplois du temps
         public List<EmploiDuTemps> getEmploisEnAttente() {
             return emploiDuTempsDAO.findEnAttente();
         }
