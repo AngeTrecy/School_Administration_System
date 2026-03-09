@@ -1,145 +1,116 @@
 package com.example.school_administration_system.DAO;
-import com.example.school_administration_system.model.RapportSeance;
+
+import com.example.school_administration_system.service.DataStore.RapportSeanceEntry;
+import com.example.school_administration_system.service.DatabaseConnection;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-    public class RapportSeanceDAO implements GenericDAO<RapportSeance> {
+public class RapportSeanceDAO {
 
-        @Override
-        public void create(RapportSeance rapport) {
-            String sql = "INSERT INTO rapport_seance (date, contenu, objectifs, observations, seance_id, enseignant_id) " +
-                    "VALUES (?, ?, ?, ?, ?, ?)";
+    public void addRapport(RapportSeanceEntry rapport) {
+        String sql = "INSERT INTO rapports_seance (enseignant_nom, matiere_nom, classe_nom, date_rapport, contenu, objectifs, observations, statut) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, rapport.getEnseignantNom());
+            pstmt.setString(2, rapport.getMatiereNom());
+            pstmt.setString(3, rapport.getClasseNom());
+            pstmt.setDate(4, rapport.getDate() != null ? Date.valueOf(rapport.getDate()) : null);
+            pstmt.setString(5, rapport.getContenu());
+            pstmt.setString(6, rapport.getObjectifs());
+            pstmt.setString(7, rapport.getObservations());
+            pstmt.setString(8, rapport.getStatut());
 
-                stmt.setDate(1, Date.valueOf(rapport.getDate()));
-                stmt.setString(2, rapport.getContenu());
-                stmt.setString(3, rapport.getObjectifs());
-                stmt.setString(4, rapport.getObservations());
-                stmt.setInt(5, rapport.getSeance().getId());
-                stmt.setInt(6, 0); // enseignant_id - à adapter
+            pstmt.executeUpdate();
 
-                stmt.executeUpdate();
-
-                ResultSet rs = stmt.getGeneratedKeys();
-                if (rs.next()) {
-                    rapport.setId(rs.getInt(1));
+            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    rapport.setId(generatedKeys.getInt(1));
                 }
-
-                System.out.println("Rapport de séance créé avec succès.");
-            } catch (SQLException e) {
-                System.err.println("Erreur création rapport: " + e.getMessage());
             }
-        }
-
-        @Override
-        public RapportSeance findById(int id) {
-            String sql = "SELECT * FROM rapport_seance WHERE id = ?";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setInt(1, id);
-                ResultSet rs = stmt.executeQuery();
-
-                if (rs.next()) {
-                    return mapResultSet(rs);
-                }
-            } catch (SQLException e) {
-                System.err.println("Erreur recherche rapport: " + e.getMessage());
-            }
-            return null;
-        }
-
-        @Override
-        public List<RapportSeance> findAll() {
-            List<RapportSeance> rapports = new ArrayList<>();
-            String sql = "SELECT * FROM rapport_seance ORDER BY date DESC";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery(sql)) {
-
-                while (rs.next()) {
-                    rapports.add(mapResultSet(rs));
-                }
-            } catch (SQLException e) {
-                System.err.println("Erreur liste rapports: " + e.getMessage());
-            }
-            return rapports;
-        }
-
-        @Override
-        public void update(RapportSeance rapport) {
-            String sql = "UPDATE rapport_seance SET date=?, contenu=?, objectifs=?, observations=? WHERE id=?";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setDate(1, Date.valueOf(rapport.getDate()));
-                stmt.setString(2, rapport.getContenu());
-                stmt.setString(3, rapport.getObjectifs());
-                stmt.setString(4, rapport.getObservations());
-                stmt.setInt(5, rapport.getId());
-
-                stmt.executeUpdate();
-                System.out.println("Rapport de séance mis à jour.");
-            } catch (SQLException e) {
-                System.err.println("Erreur mise à jour rapport: " + e.getMessage());
-            }
-        }
-
-        @Override
-        public void delete(int id) {
-            String sql = "DELETE FROM rapport_seance WHERE id = ?";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setInt(1, id);
-                stmt.executeUpdate();
-                System.out.println("Rapport supprimé.");
-            } catch (SQLException e) {
-                System.err.println("Erreur suppression rapport: " + e.getMessage());
-            }
-        }
-
-        public List<RapportSeance> findByEnseignant(int enseignantId) {
-            List<RapportSeance> rapports = new ArrayList<>();
-            String sql = "SELECT * FROM rapport_seance WHERE enseignant_id = ? ORDER BY date DESC";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setInt(1, enseignantId);
-                ResultSet rs = stmt.executeQuery();
-
-                while (rs.next()) {
-                    rapports.add(mapResultSet(rs));
-                }
-            } catch (SQLException e) {
-                System.err.println("Erreur recherche par enseignant: " + e.getMessage());
-            }
-            return rapports;
-        }
-
-        private RapportSeance mapResultSet(ResultSet rs) throws SQLException {
-            RapportSeance rapport = new RapportSeance();
-            rapport.setId(rs.getInt("id"));
-            rapport.setDate(rs.getDate("date").toLocalDate());
-            rapport.setContenu(rs.getString("contenu"));
-            rapport.setObjectifs(rs.getString("objectifs"));
-            rapport.setObservations(rs.getString("observations"));
-
-            // Charger la séance associée
-            int seanceId = rs.getInt("seance_id");
-            SeanceDAO seanceDAO = new SeanceDAO();
-            rapport.setSeance(seanceDAO.findById(seanceId));
-
-            return rapport;
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
         }
     }
 
+    public List<RapportSeanceEntry> getAllRapports() {
+        List<RapportSeanceEntry> rapports = new ArrayList<>();
+        String sql = "SELECT * FROM rapports_seance";
+        try (Connection conn = DatabaseConnection.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
 
+            while (rs.next()) {
+                rapports.add(mapResultSetToRapportSeanceEntry(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
+        }
+        return rapports;
+    }
+
+    public List<RapportSeanceEntry> getRapportsByEnseignant(String enseignantNom) {
+        List<RapportSeanceEntry> rapports = new ArrayList<>();
+        String sql = "SELECT * FROM rapports_seance WHERE enseignant_nom = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, enseignantNom);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    rapports.add(mapResultSetToRapportSeanceEntry(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
+        }
+        return rapports;
+    }
+
+    public void updateRapport(RapportSeanceEntry rapport) {
+        String sql = "UPDATE rapports_seance SET enseignant_nom=?, matiere_nom=?, classe_nom=?, date_rapport=?, contenu=?, objectifs=?, observations=?, statut=? WHERE id=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, rapport.getEnseignantNom());
+            pstmt.setString(2, rapport.getMatiereNom());
+            pstmt.setString(3, rapport.getClasseNom());
+            pstmt.setDate(4, rapport.getDate() != null ? Date.valueOf(rapport.getDate()) : null);
+            pstmt.setString(5, rapport.getContenu());
+            pstmt.setString(6, rapport.getObjectifs());
+            pstmt.setString(7, rapport.getObservations());
+            pstmt.setString(8, rapport.getStatut());
+            pstmt.setInt(9, rapport.getId());
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
+        }
+    }
+
+    public void deleteRapport(int id) {
+        String sql = "DELETE FROM rapports_seance WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
+        }
+    }
+
+    private RapportSeanceEntry mapResultSetToRapportSeanceEntry(ResultSet rs) throws SQLException {
+        RapportSeanceEntry entry = new RapportSeanceEntry(
+                rs.getString("enseignant_nom"),
+                rs.getString("matiere_nom"),
+                rs.getString("classe_nom"),
+                rs.getDate("date_rapport") != null ? rs.getDate("date_rapport").toLocalDate() : null,
+                rs.getString("contenu"),
+                rs.getString("objectifs"),
+                rs.getString("observations"),
+                rs.getString("statut"));
+        entry.setId(rs.getInt("id"));
+        return entry;
+    }
+}

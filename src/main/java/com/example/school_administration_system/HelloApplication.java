@@ -1,43 +1,77 @@
 package com.example.school_administration_system;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
+
 import java.io.IOException;
 
 public class HelloApplication extends Application {
 
-
-    private static final String USER_ROLE = "student"; // "student" ou "teacher"
-
     @Override
-    public void start(Stage stage) {
+    public void start(Stage primaryStage) {
+        // --- 1. Fenêtre de Splash Screen (Logo uniquement) ---
+        Stage splashStage = new Stage();
+        splashStage.initStyle(StageStyle.UNDECORATED); 
+
+        ImageView splashLogo = new ImageView(new Image(getClass().getResourceAsStream("/assets/images/d.png")));
+        splashLogo.setFitWidth(300); 
+        splashLogo.setPreserveRatio(true);
+
+        StackPane splashLayout = new StackPane(splashLogo);
+        splashLayout.setStyle(
+                "-fx-background-color: white; -fx-padding: 50; -fx-background-radius: 15; -fx-border-radius: 15;");
+
+        // Pour gérer l'arrondi, il faut rendre la scène transparente
+        Scene splashScene = new Scene(splashLayout);
+        splashScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        splashStage.setScene(splashScene);
+        splashStage.initStyle(StageStyle.TRANSPARENT);
+
+       
+        Image icon = new Image(getClass().getResourceAsStream("/assets/images/d_white.png"));
+        splashStage.getIcons().add(icon);
+
+        splashStage.centerOnScreen();
+        splashStage.show();
+
+       
+        PauseTransition delay = new PauseTransition(Duration.seconds(3));
+        delay.setOnFinished(event -> {
+          
+            splashStage.close();
+
+            
+            afficherLoginPage(primaryStage, icon);
+        });
+        delay.play();
+    }
+
+    private void afficherLoginPage(Stage stage, Image icon) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
-
-            // Charger le FXML approprié selon le rôle
-            String fxmlFile = USER_ROLE.equals("teacher") 
-                ? "/fxml/teacher-dashboard.fxml" 
-                : "/fxml/student-dashboard.fxml";
-
-            var url = getClass().getResource(fxmlFile);
+            var url = getClass().getResource("/fxml/login.fxml");
 
             if (url == null) {
-                System.err.println("Erreur : Fichier FXML non trouvé !");
-                System.err.println("Vérifiez que le fichier est dans : src/main/resources/fxml/");
+                System.err.println("Erreur : Fichier FXML login.fxml non trouvé !");
                 return;
             }
 
             fxmlLoader.setLocation(url);
-            Scene scene = new Scene(fxmlLoader.load(), 1400, 900);
+            Scene scene = new Scene(fxmlLoader.load(), 800, 500);
 
-            String titleSuffix = USER_ROLE.equals("teacher") 
-                ? "Dashboard Enseignant" 
-                : "Dashboard Étudiant";
-            stage.setTitle("École Primaire Voltaire - " + titleSuffix);
+            stage.setTitle("Système de Gestion Scolaire - Connexion");
             stage.setScene(scene);
-            stage.setMaximized(true);
+            stage.centerOnScreen();
+            stage.getIcons().add(icon);
             stage.show();
 
         } catch (IOException e) {

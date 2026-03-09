@@ -1,208 +1,139 @@
 package com.example.school_administration_system.DAO;
-import com.example.school_administration_system.model.Presence;
+
+import com.example.school_administration_system.service.DataStore.PresenceEntry;
+import com.example.school_administration_system.service.DatabaseConnection;
+
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-    public class PresenceDAO implements GenericDAO<Presence> {
 
-        @Override
-        public void create(Presence presence) {
-            String sql = "INSERT INTO presence (date, statut, remarque, etudiant_id, seance_id) " +
-                    "VALUES (?, ?, ?, ?, ?)";
+public class PresenceDAO {
 
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    public void addPresence(PresenceEntry p) {
+        String sql = "INSERT INTO presences (enseignant_nom, matiere_nom, classe_nom, date_presence, etudiant_nom, statut) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-                stmt.setDate(1, Date.valueOf(presence.getDate()));
-                stmt.setString(2, presence.getStatut());
-                stmt.setString(3, presence.getRemarque());
-                stmt.setInt(4, presence.getEtudiant().getId());
-                stmt.setInt(5, presence.getSeance().getId());
+            pstmt.setString(1, p.getEnseignantNom());
+            pstmt.setString(2, p.getMatiereNom());
+            pstmt.setString(3, p.getClasseNom());
+            pstmt.setDate(4, p.getDate() != null ? Date.valueOf(p.getDate()) : null);
+            pstmt.setString(5, p.getEtudiantNom());
+            pstmt.setString(6, p.getStatut());
 
-                stmt.executeUpdate();
+            pstmt.executeUpdate();
 
-                ResultSet rs = stmt.getGeneratedKeys();
-                if (rs.next()) {
-                    presence.setId(rs.getInt(1));
+            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    p.setId(generatedKeys.getInt(1));
                 }
-
-                System.out.println("Présence enregistrée avec succès.");
-            } catch (SQLException e) {
-                System.err.println("Erreur enregistrement présence: " + e.getMessage());
             }
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
         }
+    }
 
-        @Override
-        public Presence findById(int id) {
-            String sql = "SELECT * FROM presence WHERE id = ?";
+    public List<PresenceEntry> getAllPresences() {
+        List<PresenceEntry> presences = new ArrayList<>();
+        String sql = "SELECT * FROM presences";
+        try (Connection conn = DatabaseConnection.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
 
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setInt(1, id);
-                ResultSet rs = stmt.executeQuery();
-
-                if (rs.next()) {
-                    return mapResultSet(rs);
-                }
-            } catch (SQLException e) {
-                System.err.println("Erreur recherche présence: " + e.getMessage());
+            while (rs.next()) {
+                presences.add(mapResultSetToPresenceEntry(rs));
             }
-            return null;
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
         }
+        return presences;
+    }
 
-        @Override
-        public List<Presence> findAll() {
-            List<Presence> presences = new ArrayList<>();
-            String sql = "SELECT * FROM presence ORDER BY date DESC";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery(sql)) {
-
+    public List<PresenceEntry> getPresencesByEnseignant(String enseignantNom) {
+        List<PresenceEntry> presences = new ArrayList<>();
+        String sql = "SELECT * FROM presences WHERE enseignant_nom = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, enseignantNom);
+            try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    presences.add(mapResultSet(rs));
+                    presences.add(mapResultSetToPresenceEntry(rs));
                 }
-            } catch (SQLException e) {
-                System.err.println("Erreur liste présences: " + e.getMessage());
             }
-            return presences;
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
         }
+        return presences;
+    }
 
-        @Override
-        public void update(Presence presence) {
-            String sql = "UPDATE presence SET date=?, statut=?, remarque=? WHERE id=?";
+    public List<PresenceEntry> getPresencesBySession(String enseignantNom, String matiereNom, String classeNom,
+            LocalDate date) {
+        List<PresenceEntry> presences = new ArrayList<>();
+        String sql = "SELECT * FROM presences WHERE enseignant_nom=? AND matiere_nom=? AND classe_nom=? AND date_presence=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, enseignantNom);
+            pstmt.setString(2, matiereNom);
+            pstmt.setString(3, classeNom);
+            pstmt.setDate(4, Date.valueOf(date));
 
-                stmt.setDate(1, Date.valueOf(presence.getDate()));
-                stmt.setString(2, presence.getStatut());
-                stmt.setString(3, presence.getRemarque());
-                stmt.setInt(4, presence.getId());
-
-                stmt.executeUpdate();
-                System.out.println("Présence mise à jour.");
-            } catch (SQLException e) {
-                System.err.println("Erreur mise à jour présence: " + e.getMessage());
-            }
-        }
-
-        @Override
-        public void delete(int id) {
-            String sql = "DELETE FROM presence WHERE id = ?";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setInt(1, id);
-                stmt.executeUpdate();
-                System.out.println("Présence supprimée.");
-            } catch (SQLException e) {
-                System.err.println("Erreur suppression présence: " + e.getMessage());
-            }
-        }
-
-        public List<Presence> findBySeance(int seanceId) {
-            List<Presence> presences = new ArrayList<>();
-            String sql = "SELECT * FROM presence WHERE seance_id = ?";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setInt(1, seanceId);
-                ResultSet rs = stmt.executeQuery();
-
+            try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    presences.add(mapResultSet(rs));
+                    presences.add(mapResultSetToPresenceEntry(rs));
                 }
-            } catch (SQLException e) {
-                System.err.println("Erreur recherche par séance: " + e.getMessage());
             }
-            return presences;
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
         }
+        return presences;
+    }
 
-        public List<Presence> findByEtudiant(int etudiantId) {
-            List<Presence> presences = new ArrayList<>();
-            String sql = "SELECT * FROM presence WHERE etudiant_id = ? ORDER BY date DESC";
+    public void updatePresence(PresenceEntry p) {
+        String sql = "UPDATE presences SET enseignant_nom=?, matiere_nom=?, classe_nom=?, date_presence=?, etudiant_nom=?, statut=? WHERE id=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, p.getEnseignantNom());
+            pstmt.setString(2, p.getMatiereNom());
+            pstmt.setString(3, p.getClasseNom());
+            pstmt.setDate(4, p.getDate() != null ? Date.valueOf(p.getDate()) : null);
+            pstmt.setString(5, p.getEtudiantNom());
+            pstmt.setString(6, p.getStatut());
+            pstmt.setInt(7, p.getId());
 
-                stmt.setInt(1, etudiantId);
-                ResultSet rs = stmt.executeQuery();
-
-                while (rs.next()) {
-                    presences.add(mapResultSet(rs));
-                }
-            } catch (SQLException e) {
-                System.err.println("Erreur recherche par étudiant: " + e.getMessage());
-            }
-            return presences;
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
         }
+    }
 
-        public List<Presence> findByDate(java.time.LocalDate date) {
-            List<Presence> presences = new ArrayList<>();
-            String sql = "SELECT * FROM presence WHERE date = ?";
+    public void deletePresencesBySession(String enseignantNom, String matiereNom, String classeNom, LocalDate date) {
+        String sql = "DELETE FROM presences WHERE enseignant_nom=? AND matiere_nom=? AND classe_nom=? AND date_presence=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, enseignantNom);
+            pstmt.setString(2, matiereNom);
+            pstmt.setString(3, classeNom);
+            pstmt.setDate(4, Date.valueOf(date));
 
-                stmt.setDate(1, Date.valueOf(date));
-                ResultSet rs = stmt.executeQuery();
-
-                while (rs.next()) {
-                    presences.add(mapResultSet(rs));
-                }
-            } catch (SQLException e) {
-                System.err.println("Erreur recherche par date: " + e.getMessage());
-            }
-            return presences;
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Erreur: " + e.getMessage());
         }
+    }
 
-        public double getTauxPresenceEtudiant(int etudiantId) {
-            String sql = "SELECT " +
-                    "COUNT(*) as total, " +
-                    "SUM(CASE WHEN statut = 'Présent' THEN 1 ELSE 0 END) as presents " +
-                    "FROM presence WHERE etudiant_id = ?";
-
-            try (Connection conn = DatabaseConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setInt(1, etudiantId);
-                ResultSet rs = stmt.executeQuery();
-
-                if (rs.next()) {
-                    int total = rs.getInt("total");
-                    int presents = rs.getInt("presents");
-
-                    if (total > 0) {
-                        return (presents * 100.0) / total;
-                    }
-                }
-            } catch (SQLException e) {
-                System.err.println("Erreur calcul taux présence: " + e.getMessage());
-            }
-            return 0.0;
-        }
-
-        private Presence mapResultSet(ResultSet rs) throws SQLException {
-            Presence presence = new Presence();
-            presence.setId(rs.getInt("id"));
-            presence.setDate(rs.getDate("date").toLocalDate());
-            presence.setStatut(rs.getString("statut"));
-            presence.setRemarque(rs.getString("remarque"));
-
-            // Charger l'étudiant et la séance
-            int etudiantId = rs.getInt("etudiant_id");
-            int seanceId = rs.getInt("seance_id");
-
-            EtudiantDAO etudiantDAO = new EtudiantDAO();
-            SeanceDAO seanceDAO = new SeanceDAO();
-
-            presence.setEtudiant(etudiantDAO.findById(etudiantId));
-            presence.setSeance(seanceDAO.findById(seanceId));
-
-            return presence;
-        }
+    private PresenceEntry mapResultSetToPresenceEntry(ResultSet rs) throws SQLException {
+        PresenceEntry entry = new PresenceEntry(
+                rs.getString("enseignant_nom"),
+                rs.getString("matiere_nom"),
+                rs.getString("classe_nom"),
+                rs.getDate("date_presence") != null ? rs.getDate("date_presence").toLocalDate() : null,
+                rs.getString("etudiant_nom"),
+                rs.getString("statut"));
+        entry.setId(rs.getInt("id"));
+        return entry;
+    }
 }

@@ -1,6 +1,8 @@
 module com.example.school_administration_system {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.swing;
+    requires java.desktop;
     requires java.sql;
 
     // Ouvrir les packages pour JavaFX
@@ -12,4 +14,6 @@ module com.example.school_administration_system {
     exports com.example.school_administration_system;
     exports com.example.school_administration_system.controller;
     exports com.example.school_administration_system.model;
+    exports com.example.school_administration_system.service;
+    exports com.example.school_administration_system.DAO;
 }
