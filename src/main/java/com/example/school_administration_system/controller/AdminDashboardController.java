@@ -613,9 +613,15 @@ public class AdminDashboardController implements Initializable {
         // -- Section Contact élève (optionnel) --
         form.add(sectionContact, 0, row, 4, 1);
         row++;
-        // Row: Téléphone élève
+        // Row: Téléphone élève | Mot de passe
         form.add(createFormLabel("Tél. Élève"), 0, row);
         form.add(contactField, 1, row);
+        PasswordField etudPasswordField = new PasswordField();
+        etudPasswordField.setPromptText(isEdit ? "Laisser vide pour garder l'ancien" : "Mot de passe");
+        etudPasswordField.setPrefHeight(35);
+        etudPasswordField.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #dee2e6;");
+        form.add(createFormLabel("Mot de passe *"), 2, row);
+        form.add(etudPasswordField, 3, row);
         row++;
 
         // -- Section Scolaire --
@@ -657,11 +663,18 @@ public class AdminDashboardController implements Initializable {
                 errorLabel.setText("Le numéro de téléphone du parent est obligatoire.");
                 return;
             }
+            if (!isEdit && etudPasswordField.getText().trim().isEmpty()) {
+                errorLabel.setText("Le mot de passe est obligatoire.");
+                return;
+            }
             if (isEdit) {
                 existing.setMatricule(matriculeField.getText().trim());
                 existing.setNom(nomField.getText().trim());
                 existing.setPrenom(prenomField.getText().trim());
                 existing.setEmail(emailField.getText().trim());
+                if (!etudPasswordField.getText().trim().isEmpty()) {
+                    existing.setMotDePasse(etudPasswordField.getText().trim());
+                }
                 existing.setTelephone(contactField.getText().trim());
                 existing.setDateNaissance(dateNaissance.getValue());
                 existing.setAdresse(lieuNaissanceField.getText().trim());
@@ -677,7 +690,7 @@ public class AdminDashboardController implements Initializable {
             } else {
                 Etudiant newEtud = new Etudiant(
                         nomField.getText().trim(), prenomField.getText().trim(),
-                        emailField.getText().trim(), "eleve123",
+                        emailField.getText().trim(), etudPasswordField.getText().trim(),
                         contactField.getText().trim(), matriculeField.getText().trim(),
                         dateNaissance.getValue(),
                         lieuNaissanceField.getText().trim(),
@@ -688,7 +701,8 @@ public class AdminDashboardController implements Initializable {
                     classeId = Integer.parseInt(classeCombo.getValue().split(" - ")[0]);
                 }
                 dataStore.addEtudiant(newEtud, classeId);
-                showAlert("Succès", "Étudiant inscrit avec succès !");
+                showAlert("Succès", "Étudiant inscrit !\nLogin : " + emailField.getText().trim()
+                        + "\nMot de passe : " + etudPasswordField.getText().trim());
             }
             showListeEtudiants();
         });
@@ -1010,7 +1024,11 @@ public class AdminDashboardController implements Initializable {
         TextField prenomField = createFormField(isEdit ? existing.getPrenom() : "");
         prenomField.setPromptText("Prénom");
         TextField emailField = createFormField(isEdit ? existing.getEmail() : "");
-        emailField.setPromptText("Email");
+        emailField.setPromptText("Email (sera utilisé comme identifiant de connexion)");
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText(isEdit ? "Laisser vide pour garder l'ancien" : "Mot de passe");
+        passwordField.setPrefHeight(35);
+        passwordField.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #dee2e6;");
         TextField telField = createFormField(isEdit ? existing.getTelephone() : "");
         telField.setPromptText("Téléphone");
         TextField gradeField = createFormField(isEdit ? existing.getGrade() : "");
@@ -1018,18 +1036,20 @@ public class AdminDashboardController implements Initializable {
         TextField specField = createFormField(isEdit ? String.join(", ", existing.getSpecialites()) : "");
         specField.setPromptText("Spécialités (séparées par virgule)");
 
-        form.add(createFormLabel("Nom"), 0, 0);
+        form.add(createFormLabel("Nom *"), 0, 0);
         form.add(nomField, 1, 0);
-        form.add(createFormLabel("Prénom"), 0, 1);
+        form.add(createFormLabel("Prénom *"), 0, 1);
         form.add(prenomField, 1, 1);
-        form.add(createFormLabel("Email"), 0, 2);
+        form.add(createFormLabel("Email *"), 0, 2);
         form.add(emailField, 1, 2);
-        form.add(createFormLabel("Téléphone"), 0, 3);
-        form.add(telField, 1, 3);
-        form.add(createFormLabel("Grade"), 0, 4);
-        form.add(gradeField, 1, 4);
-        form.add(createFormLabel("Spécialités"), 0, 5);
-        form.add(specField, 1, 5);
+        form.add(createFormLabel("Mot de passe *"), 0, 3);
+        form.add(passwordField, 1, 3);
+        form.add(createFormLabel("Téléphone"), 0, 4);
+        form.add(telField, 1, 4);
+        form.add(createFormLabel("Grade"), 0, 5);
+        form.add(gradeField, 1, 5);
+        form.add(createFormLabel("Spécialités"), 0, 6);
+        form.add(specField, 1, 6);
 
         HBox buttons = new HBox(10);
         buttons.setAlignment(Pos.CENTER);
@@ -1044,10 +1064,21 @@ public class AdminDashboardController implements Initializable {
                 showAlert("Erreur", "Le nom est obligatoire.");
                 return;
             }
+            if (emailField.getText().trim().isEmpty()) {
+                showAlert("Erreur", "L'email est obligatoire (il servira de login).");
+                return;
+            }
+            if (!isEdit && passwordField.getText().trim().isEmpty()) {
+                showAlert("Erreur", "Le mot de passe est obligatoire.");
+                return;
+            }
             if (isEdit) {
                 existing.setNom(nomField.getText().trim());
                 existing.setPrenom(prenomField.getText().trim());
                 existing.setEmail(emailField.getText().trim());
+                if (!passwordField.getText().trim().isEmpty()) {
+                    existing.setMotDePasse(passwordField.getText().trim());
+                }
                 existing.setTelephone(telField.getText().trim());
                 existing.setGrade(gradeField.getText().trim());
                 List<String> specs = List.of(specField.getText().split(","));
@@ -1056,13 +1087,15 @@ public class AdminDashboardController implements Initializable {
                 showAlert("Succès", "Enseignant modifié !");
             } else {
                 Enseignant en = new Enseignant(nomField.getText().trim(), prenomField.getText().trim(),
-                        emailField.getText().trim(), "prof123", telField.getText().trim(), gradeField.getText().trim());
+                        emailField.getText().trim(), passwordField.getText().trim(),
+                        telField.getText().trim(), gradeField.getText().trim());
                 for (String s : specField.getText().split(",")) {
                     if (!s.trim().isEmpty())
                         en.ajouterSpecialite(s.trim());
                 }
                 dataStore.addEnseignant(en);
-                showAlert("Succès", "Enseignant ajouté !");
+                showAlert("Succès", "Enseignant ajouté !\nLogin : " + emailField.getText().trim()
+                        + "\nMot de passe : " + passwordField.getText().trim());
             }
             showListeEnseignants();
         });

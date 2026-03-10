@@ -1,5 +1,9 @@
 package com.example.school_administration_system.controller;
 
+import com.example.school_administration_system.model.Enseignant;
+import com.example.school_administration_system.model.Etudiant;
+import com.example.school_administration_system.service.DataStore;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -11,6 +15,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class LoginController implements Initializable {
@@ -23,6 +28,10 @@ public class LoginController implements Initializable {
 
     @FXML
     private Label errorLabel;
+
+    // Stocke l'utilisateur authentifié pour passer ses infos au dashboard
+    private Enseignant authenticatedEnseignant = null;
+    private Etudiant authenticatedEtudiant = null;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -51,16 +60,39 @@ public class LoginController implements Initializable {
     }
 
     private String authenticate(String login, String password) {
-        // Comptes par défaut (à remplacer par AuthService + base de données)
+        // Réinitialiser
+        authenticatedEnseignant = null;
+        authenticatedEtudiant = null;
+
+        // 1. Comptes administrateur (fixes)
         if (login.equals("admin@ecole.cm") && password.equals("admin123")) {
             return "admin";
         } else if (login.equals("directeur@ecole.cm") && password.equals("admin123")) {
             return "directeur";
-        } else if (login.equals("prof@ecole.cm") && password.equals("prof123")) {
-            return "teacher";
-        } else if (login.equals("eleve@ecole.cm") && password.equals("eleve123")) {
-            return "student";
         }
+
+        DataStore store = DataStore.getInstance();
+
+        // 2. Vérifier parmi les enseignants inscrits dans la BDD
+        List<Enseignant> enseignants = store.getAllEnseignants();
+        for (Enseignant ens : enseignants) {
+            if (ens.getEmail() != null && ens.getEmail().equalsIgnoreCase(login)
+                    && ens.getMotDePasse() != null && ens.getMotDePasse().equals(password)) {
+                authenticatedEnseignant = ens;
+                return "teacher";
+            }
+        }
+
+        // 3. Vérifier parmi les étudiants inscrits dans la BDD
+        List<Etudiant> etudiants = store.getAllEtudiants();
+        for (Etudiant et : etudiants) {
+            if (et.getEmail() != null && et.getEmail().equalsIgnoreCase(login)
+                    && et.getMotDePasse() != null && et.getMotDePasse().equals(password)) {
+                authenticatedEtudiant = et;
+                return "student";
+            }
+        }
+
         return null;
     }
 
@@ -93,16 +125,16 @@ public class LoginController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
             Scene scene = new Scene(loader.load(), 1400, 900);
 
-            // Passer le nom de l'enseignant connecté
-            if ("teacher".equals(role)) {
+            // Passer les infos de l'enseignant connecté
+            if ("teacher".equals(role) && authenticatedEnseignant != null) {
                 TeacherDashboardController ctrl = loader.getController();
-                // Identifier l'enseignant par son email
-                String email = loginField.getText().trim();
-                com.example.school_administration_system.model.Enseignant ens = com.example.school_administration_system.service.DataStore
-                        .getInstance().getEnseignantByEmail(email);
-                if (ens != null) {
-                    ctrl.setEnseignantNom(ens.getPrenom() + " " + ens.getNom());
-                }
+                ctrl.setEnseignantNom(authenticatedEnseignant.getPrenom() + " " + authenticatedEnseignant.getNom());
+            }
+
+            // Passer les infos de l'étudiant connecté
+            if ("student".equals(role) && authenticatedEtudiant != null) {
+                StudentDashboardController ctrl = loader.getController();
+                ctrl.setStudentInfo(authenticatedEtudiant.getPrenom(), authenticatedEtudiant.getId());
             }
 
             Stage stage = (Stage) loginField.getScene().getWindow();
