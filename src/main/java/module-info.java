@@ -1,16 +1,19 @@
 module com.example.school_administration_system {
     requires javafx.controls;
     requires javafx.fxml;
-    requires javafx.web;
+    requires javafx.swing;
+    requires java.desktop;
+    requires java.sql;
 
-    requires org.controlsfx.controls;
-    requires com.dlsc.formsfx;
-    requires net.synedra.validatorfx;
-    requires org.kordamp.ikonli.javafx;
-    requires org.kordamp.bootstrapfx.core;
-    requires eu.hansolo.tilesfx;
-    requires com.almasb.fxgl.all;
-
+    // Ouvrir les packages pour JavaFX
     opens com.example.school_administration_system to javafx.fxml;
+    opens com.example.school_administration_system.controller to javafx.fxml;
+    opens com.example.school_administration_system.model to javafx.base;
+
+    // Exporter les packages
     exports com.example.school_administration_system;
+    exports com.example.school_administration_system.controller;
+    exports com.example.school_administration_system.model;
+    exports com.example.school_administration_system.service;
+    exports com.example.school_administration_system.DAO;
 }

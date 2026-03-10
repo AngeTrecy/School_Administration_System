@@ -1,252 +1,215 @@
-# Système de Gestion Scolaire
+# Systeme de Gestion Scolaire
 
 ## Description
 
-Application de gestion pour établissements d'enseignement secondaire développée en Java avec JavaFX. Le système permet la gestion complète des étudiants, des enseignants, des classes et des emplois du temps.
+Application de gestion pour etablissements scolaires developpee en Java avec JavaFX.
+Le systeme couvre la gestion des etudiants, des enseignants, des classes, des matieres,
+des emplois du temps, des rapports de seance, du cahier de texte et des presences.
 
-## Fonctionnalités
+L'application demarre avec un ecran de lancement (splash screen) affichant le logo
+de l'etablissement pendant 3 secondes avant de rediriger vers la page de connexion.
+
+---
+
+## Fonctionnalites
+
+### Authentification
+
+- Connexion dynamique par email et mot de passe stockes en base de donnees
+- Chaque enseignant et chaque etudiant dispose de son propre compte
+- Comptes administrateur et directeur fixes
+- Redirection automatique vers le dashboard correspondant au role
 
 ### Dashboard Administrateur
-- Inscription et gestion des étudiants
-- Création et gestion des classes
-- Visualisation du nombre d'élèves par classe
-- Affectation des enseignants aux classes
-- Établissement des emplois du temps (matières, jours, horaires)
+
+- Tableau de bord avec statistiques globales (etudiants, classes, enseignants, matieres, paiements)
+- Inscription et gestion des etudiants (CRUD complet avec formulaire detaille)
+- Creation et gestion des classes (nom, niveau, capacite, annee academique)
+- Ajout et gestion des enseignants avec attribution de mot de passe individuel
+- Gestion des matieres (code, nom, coefficient, volume horaire)
+- Creation de l'emploi du temps (classe, matiere, enseignant, jour, horaires, salle)
+- Visualisation de l'emploi du temps par classe sous forme de grille
+- Gestion des paiements
+- Impression et export de l'emploi du temps
+- Consultation des rapports de seance soumis par les enseignants
+- Consultation du cahier de texte des enseignants
+- Consultation de l'historique des presences
 
 ### Dashboard Enseignant
-- Consultation de l'emploi du temps personnel (lecture seule)
-- Rédaction des rapports de séance (cahier de texte)
-- Gestion de l'appel et des présences
 
-### Dashboard Étudiant
-- Consultation de la classe
-- Consultation de la liste des enseignants
-- Consultation de l'emploi du temps de la classe
+- Tableau de bord avec cours du jour, rapports en attente, taux de presence, classes
+- Emploi du temps personnel organise par jour avec code couleur
+- Redaction et gestion des rapports de seance (creation, modification, suppression)
+- Cahier de texte (titre de lecon, contenu, devoirs a la maison)
+- Gestion des presences : appel par classe/matiere/date avec statut (Present, Absent, Retard)
+- Historique des appels avec pourcentage de presence
+- Consultation de la liste des eleves par classe
+
+### Dashboard Etudiant
+
+- Tableau de bord avec cartes statistiques (classe, camarades, cours du jour, enseignants)
+- Consultation de la liste des camarades de classe avec matricules
+- Emploi du temps complet de la classe organise par jour
+- Liste des enseignants avec les matieres enseignees et le nombre de seances par semaine
 
 ### Dashboard Directeur
+
+- Acces au meme dashboard que l'administrateur
 - Validation des emplois du temps
-- Autorisation d'accès pour les administrateurs
-- Consultation des statistiques générales (classes et enseignants)
+- Consultation des statistiques generales
 
-## Technologies Utilisées
+---
 
-- **Langage** : Java 17+
-- **Interface graphique** : JavaFX 17+
-- **Base de données** : MySQL 
-- **ORM** : Hibernate (optionnel)
-- **Build Tool** : Maven 
-- **Architecture** : MVC (Model-View-Controller)
+## Technologies utilisees
 
-## Prérequis
+| Composant         | Technologie                  |
+|-------------------|------------------------------|
+| Langage           | Java 17+                     |
+| Interface         | JavaFX 17.0.14               |
+| Base de donnees   | PostgreSQL                   |
+| Driver JDBC       | PostgreSQL Driver 42.7.2     |
+| Build Tool        | Maven                        |
+| Architecture      | MVC (Model-View-Controller)  |
+| Acces aux donnees | Pattern DAO + Facade         |
 
-- JDK 17 ou supérieur
+---
+
+## Prerequis
+
+- JDK 17 ou superieur
 - JavaFX SDK 17+
-- MySQL 8.0+ 
-- Maven 3.8+ 
-- IDE recommandé : IntelliJ IDEA / Eclipse / NetBeans
+- PostgreSQL installe et en cours d'execution
+- Maven 3.8+
+- IDE recommande : IntelliJ IDEA
+
+---
 
 ## Installation
 
 ### 1. Cloner le projet
+
 ```bash
-git clone https://github.com/votre-repo/gestion-scolaire.git
-cd gestion-scolaire
+git clone https://github.com/AngeTreworworworworworworTreworworworworworworTrecy/School_Administration_System.git
+cd School_Administration_System
 ```
 
-### 2. Configurer la base de données
+### 2. Configurer la base de donnees
 
-Créer une base de données MySQL :
+Creer une base de donnees PostgreSQL nommee `school_db` :
+
 ```sql
-CREATE DATABASE gestion_scolaire;
-CREATE USER 'admin_scolaire'@'localhost' IDENTIFIED BY 'votre_mot_de_passe';
-GRANT ALL PRIVILEGES ON gestion_scolaire.* TO 'admin_scolaire'@'localhost';
-FLUSH PRIVILEGES;
+CREATE DATABASE school_db;
 ```
 
-### 3. Configurer le fichier de connexion
+La connexion est configuree dans le fichier
+`src/main/java/.../service/DatabaseConnection.java` :
 
-Modifier le fichier `src/main/resources/application.properties` :
-```properties
-# Configuration Base de données
-db.url=jdbc:mysql://localhost:3306/gestion_scolaire
-db.username=admin_scolaire
-db.password=votre_mot_de_passe
-db.driver=com.mysql.cj.jdbc.Driver
-
-# Configuration JavaFX
-javafx.title=Système de Gestion Scolaire
-javafx.width=1200
-javafx.height=800
+```
+URL      : jdbc:postgresql://localhost:5432/school_db
+USER     : postgres
+PASSWORD : root
 ```
 
-### 4. Installer les dépendances
+Modifier ces valeurs selon votre configuration locale.
 
-**Avec Maven :**
+### 3. Creer les tables
+
+Les tables principales a creer dans PostgreSQL :
+
+- `enseignants` (id, nom, prenom, email, mot_de_passe, telephone, titre)
+- `etudiants` (id, nom, prenom, email, mot_de_passe, telephone, matricule, date_naissance, lieu_naissance, nom_pere, nom_mere, telephone_parent, classe_id)
+- `classes` (id, nom, niveau, capacite_max, annee_academique)
+- `matieres` (id, code, nom, coefficient, nb_heures)
+- `enseignant_specialites` (enseignant_id, specialite)
+- `seances` (id, classe_nom, matiere_nom, enseignant_nom, jour, heure_debut, heure_fin, salle)
+- `rapports_seance` (id, enseignant_nom, matiere_nom, classe_nom, date, contenu, objectifs, observations, statut)
+- `cahier_texte` (id, enseignant_nom, matiere_nom, classe_nom, date, titre, contenu, devoirs)
+- `presences` (id, enseignant_nom, matiere_nom, classe_nom, date, etudiant_nom, statut)
+- `paiements` (id, etudiant_id, montant, date_paiement, type, description)
+
+### 4. Installer les dependances et lancer
+
 ```bash
 mvn clean install
-```
-
-**Avec Gradle :**
-```bash
-gradle build
-```
-
-## Structure du Projet
-
-```
-gestion-scolaire/
-│
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/
-│   │   │       └── gestion/
-│   │   │           ├── model/          # Entités (Utilisateur, Classe, etc.)
-│   │   │           ├── dao/            # Data Access Objects
-│   │   │           ├── service/        # Logique métier
-│   │   │           ├── controller/     # Contrôleurs JavaFX
-│   │   │           ├── view/           # Classes utilitaires pour les vues
-│   │   │           └── Main.java       # Point d'entrée
-│   │   │
-│   │   └── resources/
-│   │       ├── fxml/                   # Fichiers FXML pour les interfaces
-│   │       ├── css/                    # Feuilles de style
-│   │       ├── images/                 # Images et icônes
-│   │       └── application.properties  # Configuration
-│   │
-│   └── test/
-│       └── java/                       # Tests unitaires
-│
-├── pom.xml / build.gradle             # Configuration des dépendances
-└── README.md
-```
-
-## Dépendances Maven (pom.xml)
-
-```xml
-<dependencies>
-    <!-- JavaFX -->
-    <dependency>
-        <groupId>org.openjfx</groupId>
-        <artifactId>javafx-controls</artifactId>
-        <version>17.0.2</version>
-    </dependency>
-    <dependency>
-        <groupId>org.openjfx</groupId>
-        <artifactId>javafx-fxml</artifactId>
-        <version>17.0.2</version>
-    </dependency>
-    
-    <!-- MySQL Connector -->
-    <dependency>
-        <groupId>mysql</groupId>
-        <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.33</version>
-    </dependency>
-    
-    <!-- Hibernate (optionnel) -->
-    <dependency>
-        <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-core</artifactId>
-        <version>6.2.0.Final</version>
-    </dependency>
-    
-    <!-- JUnit pour les tests -->
-    <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>5.9.2</version>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
-
-## Exécution
-
-### Avec Maven
-```bash
 mvn javafx:run
 ```
 
-### Avec Gradle
-```bash
-gradle run
+Ou depuis l'IDE, executer la classe `HelloApplication.java`.
+
+---
+
+## Structure du projet
+
+```
+School_Administration_System/
+|
+|-- src/
+|   |-- main/
+|   |   |-- java/com/example/school_administration_system/
+|   |   |   |-- model/           Entites (Utilisateur, Etudiant, Enseignant, Classe, Matiere, etc.)
+|   |   |   |-- DAO/             Data Access Objects (EtudiantDAO, EnseignantDAO, ClasseDAO, etc.)
+|   |   |   |-- service/         Facade DataStore + DatabaseConnection
+|   |   |   |-- controller/      Controleurs JavaFX (Login, Admin, Teacher, Student)
+|   |   |   |-- HelloApplication.java   Point d'entree avec splash screen
+|   |   |
+|   |   |-- resources/
+|   |       |-- fxml/            Fichiers FXML (login, admin-dashboard, teacher-dashboard, student-dashboard)
+|   |       |-- assets/images/   Logo et images
+|
+|-- pom.xml                      Configuration Maven et dependances
+|-- Readme.md
 ```
 
-### Depuis l'IDE
-Exécuter la classe `Main.java`
+---
 
-## Comptes par Défaut
+## Comptes par defaut
 
-Après l'initialisation de la base de données :
+### Comptes fixes (administrateur / directeur)
 
-- **Directeur**
-    - Email : directeur@ecole.cm
-    - Mot de passe : admin123
+| Role          | Email                  | Mot de passe |
+|---------------|------------------------|--------------|
+| Administrateur| admin@ecole.cm         | admin123     |
+| Directeur     | directeur@ecole.cm     | admin123     |
 
-- **Administrateur**
-    - Email : admin@ecole.cm
-    - Mot de passe : admin123
+### Comptes dynamiques (enseignants / etudiants)
+
+Les enseignants et etudiants se connectent avec l'email et le mot de passe
+definis lors de leur inscription par l'administrateur.
+
+Lors de l'ajout d'un enseignant ou d'un etudiant, l'administrateur saisit :
+- L'email (qui servira d'identifiant de connexion)
+- Le mot de passe
+
+Apres l'inscription, un message de confirmation affiche les identifiants de connexion.
+
+---
 
 ## Architecture
 
-### Modèle MVC
-- **Model** : Classes entités représentant les données (Utilisateur, Classe, EmploiDuTemps, etc.)
-- **View** : Fichiers FXML définissant les interfaces utilisateur
-- **Controller** : Classes gérant la logique d'interaction entre Model et View
+### Modele MVC
+
+- **Model** : Classes entites dans le package `model` (Utilisateur, Etudiant, Enseignant, Classe, Matiere, Paiement, etc.)
+- **View** : Fichiers FXML dans `resources/fxml` definissant les interfaces
+- **Controller** : Classes dans le package `controller` gerant la logique d'interaction
 
 ### Couche DAO
-Pattern DAO (Data Access Object) pour l'accès aux données avec des interfaces génériques :
-```java
-public interface GenericDAO<T> {
-    void create(T entity);
-    T findById(int id);
-    List<T> findAll();
-    void update(T entity);
-    void delete(int id);
-}
-```
 
-### Couche Service
-Logique métier séparée pour chaque domaine (étudiant, classe, emploi du temps, etc.)
+Chaque entite dispose de son propre DAO qui encapsule les requetes SQL vers PostgreSQL.
+Les DAO sont appeles via la facade `DataStore` qui centralise tous les acces aux donnees.
 
-## Fonctionnalités à Développer
+### Facade DataStore
 
-- [ ] Module d'authentification
-- [ ] Gestion des étudiants (CRUD)
-- [ ] Gestion des classes (CRUD)
-- [ ] Affectation des enseignants
-- [ ] Création d'emplois du temps
-- [ ] Validation des emplois du temps par le directeur
-- [ ] Rapport de séances (cahier de texte)
-- [ ] Gestion des présences
-- [ ] Tableau de bord avec statistiques
-- [ ] Export des données (PDF, Excel)
-- [ ] Système de notifications
+Le `DataStore` agit comme un point d'acces unique vers l'ensemble des DAO.
+Il fournit des methodes simples que les controleurs appellent directement.
 
-## Tests
-
-Exécuter les tests unitaires :
-```bash
-mvn test
-```
-
-## Contribution
-
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/nouvelle-fonctionnalite`)
-3. Commit les changements (`git commit -m 'Ajout nouvelle fonctionnalité'`)
-4. Push vers la branche (`git push origin feature/nouvelle-fonctionnalite`)
-5. Ouvrir une Pull Request
+---
 
 ## Auteur
 
-Votre Nom - [votre@email.com]
+Demanou Ange Trecy - angedemanou0@gmail.com
 
-## Licence
-
-Ce projet est sous licence MIT - voir le fichier LICENSE pour plus de détails.
+---
 
 ## Support
 
-Pour toute question ou problème, ouvrir une issue sur GitHub.
+Pour toute question ou probleme, ouvrir une issue sur le depot GitHub.
